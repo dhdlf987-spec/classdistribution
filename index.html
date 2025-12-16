@@ -702,62 +702,94 @@
 
         for (let i = 0; i < parts.length; i++) {
           if (parts[i] === '여' && parts[i + 1]) {
-            const name = parts[i + 1];
-            let notes = [];
+            let name = parts[i + 1];
             
-            for (let j = i + 2; j < i + 7 && j < parts.length; j++) {
-              if (parts[j] === '남' || parts[j] === '여') break;
-              if (parts[j] && !parts[j].match(/^\d+$/)) {
-                const note = parts[j].toLowerCase();
-                // 유연한 키워드 매칭
-                if (note.includes('생활') || note.includes('지도')) {
-                  notes.push('생활지도');
-                } else if (note.includes('특수') || note.includes('장애')) {
-                  notes.push('특수');
-                } else if (note.includes('학습') || note.includes('기초') || note.includes('학력')) {
-                  notes.push('학습부진');
-                } else if (note.includes('다문화')) {
-                  notes.push('다문화');
-                } else if (note.includes('전학') || note.includes('전출')) {
-                  notes.push('전출예정');
+            // 유효하지 않은 이름 필터링
+            if (isValidName(name)) {
+              let notes = [];
+              
+              for (let j = i + 2; j < i + 7 && j < parts.length; j++) {
+                if (parts[j] === '남' || parts[j] === '여') break;
+                if (parts[j] && !parts[j].match(/^\d+$/)) {
+                  const note = parts[j].toLowerCase();
+                  // 유연한 키워드 매칭
+                  if (note.includes('생활') || note.includes('지도')) {
+                    notes.push('생활지도');
+                  } else if (note.includes('특수') || note.includes('장애')) {
+                    notes.push('특수');
+                  } else if (note.includes('학습') || note.includes('기초') || note.includes('학력')) {
+                    notes.push('학습부진');
+                  } else if (note.includes('다문화')) {
+                    notes.push('다문화');
+                  } else if (note.includes('전학') || note.includes('전출')) {
+                    notes.push('전출예정');
+                  }
                 }
               }
-            }
 
-            // 중복 제거
-            notes = [...new Set(notes)];
-            female.push({ name, notes, gender: '여' });
+              // 중복 제거
+              notes = [...new Set(notes)];
+              female.push({ name, notes, gender: '여' });
+            }
           } else if (parts[i] === '남' && parts[i + 1]) {
-            const name = parts[i + 1];
-            let notes = [];
+            let name = parts[i + 1];
             
-            for (let j = i + 2; j < i + 7 && j < parts.length; j++) {
-              if (parts[j] === '남' || parts[j] === '여') break;
-              if (parts[j] && !parts[j].match(/^\d+$/)) {
-                const note = parts[j].toLowerCase();
-                // 유연한 키워드 매칭
-                if (note.includes('생활') || note.includes('지도')) {
-                  notes.push('생활지도');
-                } else if (note.includes('특수') || note.includes('장애')) {
-                  notes.push('특수');
-                } else if (note.includes('학습') || note.includes('기초') || note.includes('학력')) {
-                  notes.push('학습부진');
-                } else if (note.includes('다문화')) {
-                  notes.push('다문화');
-                } else if (note.includes('전학') || note.includes('전출')) {
-                  notes.push('전출예정');
+            // 유효하지 않은 이름 필터링
+            if (isValidName(name)) {
+              let notes = [];
+              
+              for (let j = i + 2; j < i + 7 && j < parts.length; j++) {
+                if (parts[j] === '남' || parts[j] === '여') break;
+                if (parts[j] && !parts[j].match(/^\d+$/)) {
+                  const note = parts[j].toLowerCase();
+                  // 유연한 키워드 매칭
+                  if (note.includes('생활') || note.includes('지도')) {
+                    notes.push('생활지도');
+                  } else if (note.includes('특수') || note.includes('장애')) {
+                    notes.push('특수');
+                  } else if (note.includes('학습') || note.includes('기초') || note.includes('학력')) {
+                    notes.push('학습부진');
+                  } else if (note.includes('다문화')) {
+                    notes.push('다문화');
+                  } else if (note.includes('전학') || note.includes('전출')) {
+                    notes.push('전출예정');
+                  }
                 }
               }
-            }
 
-            // 중복 제거
-            notes = [...new Set(notes)];
-            male.push({ name, notes, gender: '남' });
+              // 중복 제거
+              notes = [...new Set(notes)];
+              male.push({ name, notes, gender: '남' });
+            }
           }
         }
       }
 
       return { female, male };
+    }
+
+    // 유효한 이름인지 확인
+    function isValidName(name) {
+      // 빈 문자열
+      if (!name || name.trim() === '') return false;
+      
+      // 숫자만 있는 경우
+      if (/^\d+$/.test(name)) return false;
+      
+      // '남', '여' 단독
+      if (name === '남' || name === '여') return false;
+      
+      // '성별', '이름', '비고', '순서' 등 헤더로 보이는 단어
+      const invalidWords = ['성별', '이름', '비고', '순서', '번호', '학생', '명단', '명렬표'];
+      if (invalidWords.includes(name)) return false;
+      
+      // 1글자이고 숫자나 특수문자인 경우
+      if (name.length === 1 && !/[가-힣a-zA-Z]/.test(name)) return false;
+      
+      // 한글, 영문이 하나도 없는 경우
+      if (!/[가-힣a-zA-Z]/.test(name)) return false;
+      
+      return true;
     }
 
     function getPrefixes(notes) {
