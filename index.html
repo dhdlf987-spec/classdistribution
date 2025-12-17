@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+function distributeStudents<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -853,13 +853,25 @@
       const maleStart = (classNumber - 1 + Math.floor(totalClasses / 2)) % totalClasses;
 
       // 1단계: 학생 분류
-      const femaleNormal = students.female.filter(s => !hasSpecialNote(s.notes) && !isTransfer(s.notes));
-      const femaleSpecial = students.female.filter(s => hasSpecialNote(s.notes) && !isTransfer(s.notes));
-      const femaleTransfer = students.female.filter(s => isTransfer(s.notes));
+      const femaleNormal = students.female.filter(s => s.notes.length === 0);
+      const maleNormal = students.male.filter(s => s.notes.length === 0);
 
-      const maleNormal = students.male.filter(s => !hasSpecialNote(s.notes) && !isTransfer(s.notes));
-      const maleSpecial = students.male.filter(s => hasSpecialNote(s.notes) && !isTransfer(s.notes));
-      const maleTransfer = students.male.filter(s => isTransfer(s.notes));
+      // 특이사항별로 분류
+      const femaleByCat = {
+        '생활지도': students.female.filter(s => s.notes.includes('생활지도') && !isTransfer(s.notes)),
+        '특수': students.female.filter(s => s.notes.includes('특수') && !isTransfer(s.notes)),
+        '학습부진': students.female.filter(s => s.notes.includes('학습부진') && !isTransfer(s.notes)),
+        '다문화': students.female.filter(s => s.notes.includes('다문화') && !isTransfer(s.notes)),
+        '전출예정': students.female.filter(s => isTransfer(s.notes))
+      };
+
+      const maleByCat = {
+        '생활지도': students.male.filter(s => s.notes.includes('생활지도') && !isTransfer(s.notes)),
+        '특수': students.male.filter(s => s.notes.includes('특수') && !isTransfer(s.notes)),
+        '학습부진': students.male.filter(s => s.notes.includes('학습부진') && !isTransfer(s.notes)),
+        '다문화': students.male.filter(s => s.notes.includes('다문화') && !isTransfer(s.notes)),
+        '전출예정': students.male.filter(s => isTransfer(s.notes))
+      };
 
       // 2단계: 일반 학생 배치
       femaleNormal.forEach((student, i) => {
@@ -874,120 +886,211 @@
         addStudent(className, student, classNumber);
       });
 
-      // 3단계: 특수상황 학생 균등 배치
-      femaleSpecial.forEach((student, i) => {
-        const classIndex = (femaleStart + femaleNormal.length + i) % totalClasses;
-        const className = classNames[classIndex] + '(여)';
-        addStudent(className, student, classNumber);
+      // 3단계: 특이사항별로 골고루 배치
+      let femaleSpecialIndex = 0;
+      let maleSpecialIndex = 0;
+
+      const categories = ['생활지도', '특수', '학습부진', '다문화'];
+      
+      categories.forEach(cat => {
+        femaleByCat[cat].forEach((student, i) => {
+          const classIndex = (femaleSpecialIndex++) % totalClasses;
+          const className = classNames[classIndex] + '(여)';
+          addStudent(className, student, classNumber);
+        });
+
+        maleByCat[cat].forEach((student, i) => {
+          const classIndex = (maleSpecialIndex++) % totalClasses;
+          const className = classNames[classIndex] + '(남)';
+          addStudent(className, student, classNumber);
+        });
       });
 
-      maleSpecial.forEach((student, i) => {
-        const classIndex = (maleStart + maleNormal.length + i) % totalClasses;
-        const className = classNames[classIndex] + '(남)';
-        addStudent(className, student, classNumber);
+      // 4단계: 전출예정은 임시 저장
+      femaleByCat['전출예정'].forEach(student => {
+        if (!distributedStudents['temp_female_transfer']) distributedStudents['temp_female_transfer'] = [];
+        addStudent('temp_female_transfer', student, classNumber);
       });
 
-      // 4단계: 전출예정 학생은 임시 저장 (마지막에 배치)
-      femaleTransfer.forEach((student) => {
-        const className = 'temp_female_transfer';
-        if (!distributedStudents[className]) distributedStudents[className] = [];
-        addStudent(className, student, classNumber);
+      maleByCat['전출예정'].forEach(student => {
+        if (!distributedStudents['temp_male_transfer']) distributedStudents['temp_male_transfer'] = [];
+        addStudent('temp_male_transfer', student, classNumber);
       });
 
-      maleTransfer.forEach((student) => {
-        const className = 'temp_male_transfer';
-        if (!distributedStudents[className]) distributedStudents[className] = [];
-        addStudent(className, student, classNumber);
-      });
-
-      // 5단계: 인원 균등화 (모든 반 업로드 완료 후 실행)
-      balanceClassSizes();
+      // 5단계: 인원 균등화 + 동명이인 처리
+      balanceAndFinalize();
     }
 
-    function balanceClassSizes() {
-      // 전출예정 학생 제외하고 현재 인원 계산
-      const femaleCount = {};
-      const maleCount = {};
-
+    function balanceAndFinalize() {
+      // 1. 전출예정 제외한 인원 계산
+      const counts = { female: {}, male: {} };
+      
       for (let i = 0; i < settings.totalClasses; i++) {
         const className = classNames[i];
-        femaleCount[className] = (distributedStudents[className + '(여)'] || []).length;
-        maleCount[className] = (distributedStudents[className + '(남)'] || []).length;
+        counts.female[className] = (distributedStudents[className + '(여)'] || []).length;
+        counts.male[className] = (distributedStudents[className + '(남)'] || []).length;
       }
 
-      // 목표 인원 계산
-      const totalFemale = Object.values(femaleCount).reduce((a, b) => a + b, 0);
-      const totalMale = Object.values(maleCount).reduce((a, b) => a + b, 0);
-      const targetFemale = Math.ceil(totalFemale / settings.totalClasses);
-      const targetMale = Math.ceil(totalMale / settings.totalClasses);
+      // 2. 목표 인원 계산
+      const totalFemale = Object.values(counts.female).reduce((a, b) => a + b, 0);
+      const totalMale = Object.values(counts.male).reduce((a, b) => a + b, 0);
+      const targetFemale = Math.round(totalFemale / settings.totalClasses);
+      const targetMale = Math.round(totalMale / settings.totalClasses);
 
-      // 여학생 균등화
-      balanceGender('여', femaleCount, targetFemale);
+      // 3. 균등화
+      balanceGenderStrict('여', counts.female, targetFemale);
+      balanceGenderStrict('남', counts.male, targetMale);
 
-      // 남학생 균등화
-      balanceGender('남', maleCount, targetMale);
+      // 4. 동명이인 분산
+      separateSameNames();
 
-      // 전출예정 학생 마지막에 추가
-      addTransferStudentsToEnd();
+      // 5. 전출예정 학생 골고루 배치
+      addTransferStudentsEvenly();
     }
 
-    function balanceGender(gender, counts, target) {
+    function balanceGenderStrict(gender, counts, target) {
       const genderKey = '(' + gender + ')';
-      let iterations = 0;
-      const maxIterations = 100;
-
-      while (iterations < maxIterations) {
-        let balanced = true;
+      
+      // 최대 100번 반복
+      for (let iter = 0; iter < 100; iter++) {
+        let moved = false;
         
+        // 인원이 많은 반에서 적은 반으로 이동
         for (let i = 0; i < settings.totalClasses; i++) {
           const fromClass = classNames[i] + genderKey;
-          const currentCount = (distributedStudents[fromClass] || []).length;
-
-          if (currentCount > target) {
-            // 인원이 많은 반에서 이동
+          const fromCount = (distributedStudents[fromClass] || []).length;
+          
+          if (fromCount > target) {
+            // 가장 적은 반 찾기
+            let minCount = Infinity;
+            let toClass = null;
+            
             for (let j = 0; j < settings.totalClasses; j++) {
-              const toClass = classNames[j] + genderKey;
-              const toCount = (distributedStudents[toClass] || []).length;
-
-              if (toCount < target && currentCount > target) {
-                // 전출예정이 아닌 학생 중 마지막 학생 이동
-                const students = distributedStudents[fromClass];
-                const nonTransferStudents = students.filter(s => !isTransfer(s.notes));
-                
-                if (nonTransferStudents.length > 0) {
-                  const studentToMove = nonTransferStudents[nonTransferStudents.length - 1];
-                  distributedStudents[fromClass] = students.filter(s => s.name !== studentToMove.name);
-                  distributedStudents[toClass].push(studentToMove);
-                  balanced = false;
-                  break;
-                }
+              const checkClass = classNames[j] + genderKey;
+              const checkCount = (distributedStudents[checkClass] || []).length;
+              if (checkCount < target && checkCount < minCount) {
+                minCount = checkCount;
+                toClass = checkClass;
+              }
+            }
+            
+            if (toClass) {
+              // 특수상황 아닌 학생부터 이동
+              const students = distributedStudents[fromClass];
+              const normalStudent = students.find(s => !hasSpecialNote(s.notes));
+              
+              if (normalStudent) {
+                distributedStudents[fromClass] = students.filter(s => s.name !== normalStudent.name);
+                distributedStudents[toClass].push(normalStudent);
+                moved = true;
               }
             }
           }
         }
-
-        if (balanced) break;
-        iterations++;
+        
+        if (!moved) break;
       }
     }
 
-    function addTransferStudentsToEnd() {
-      // 여학생 전출예정
+    function separateSameNames() {
+      // 동명이인 찾기 (성 제외한 이름)
+      const nameMap = {}; // { "서준": [{name: "한서준", class: "가반(남)", ...}, ...] }
+      
+      for (let i = 0; i < settings.totalClasses; i++) {
+        ['(여)', '(남)'].forEach(gender => {
+          const className = classNames[i] + gender;
+          const students = distributedStudents[className] || [];
+          
+          students.forEach(student => {
+            const fullName = student.name.replace(/^[⭐#❗@🔄]+/, '');
+            const firstName = fullName.length >= 2 ? fullName.substring(1) : fullName;
+            
+            if (!nameMap[firstName]) nameMap[firstName] = [];
+            nameMap[firstName].push({
+              student: student,
+              className: className,
+              classIndex: i
+            });
+          });
+        });
+      }
+
+      // 동명이인이 같은 반에 있으면 분산
+      for (let firstName in nameMap) {
+        const group = nameMap[firstName];
+        
+        if (group.length > 1) {
+          // 같은 반에 있는지 확인
+          const byClass = {};
+          group.forEach(item => {
+            if (!byClass[item.classIndex]) byClass[item.classIndex] = [];
+            byClass[item.classIndex].push(item);
+          });
+
+          // 같은 반에 2명 이상이면 분산
+          for (let classIdx in byClass) {
+            if (byClass[classIdx].length > 1) {
+              // 두 번째 학생부터 다른 반으로 이동
+              for (let i = 1; i < byClass[classIdx].length; i++) {
+                const item = byClass[classIdx][i];
+                const gender = item.className.includes('(여)') ? '(여)' : '(남)';
+                
+                // 가장 적은 반으로 이동
+                let minCount = Infinity;
+                let targetClass = null;
+                
+                for (let j = 0; j < settings.totalClasses; j++) {
+                  if (j == classIdx) continue;
+                  const checkClass = classNames[j] + gender;
+                  const count = (distributedStudents[checkClass] || []).length;
+                  
+                  // 이 반에 같은 이름 없는지 확인
+                  const hasSameName = (distributedStudents[checkClass] || []).some(s => {
+                    const fn = s.name.replace(/^[⭐#❗@🔄]+/, '').substring(1);
+                    return fn === firstName;
+                  });
+                  
+                  if (!hasSameName && count < minCount) {
+                    minCount = count;
+                    targetClass = checkClass;
+                  }
+                }
+                
+                if (targetClass) {
+                  distributedStudents[item.className] = distributedStudents[item.className].filter(s => s.name !== item.student.name);
+                  distributedStudents[targetClass].push(item.student);
+                }
+              }
+            }
+          }
+
+          // 원반 번호 추가
+          group.forEach(item => {
+            const fullName = item.student.name.replace(/^[⭐#❗@🔄]+/, '');
+            item.student.displayName = item.student.displayName.replace(fullName, fullName + `(${item.student.originalClass}반)`);
+          });
+        }
+      }
+    }
+
+    function addTransferStudentsEvenly() {
+      // 전출예정 학생을 모든 반에 골고루
       const femaleTransfer = distributedStudents['temp_female_transfer'] || [];
+      const maleTransfer = distributedStudents['temp_male_transfer'] || [];
+
       femaleTransfer.forEach((student, i) => {
         const classIndex = i % settings.totalClasses;
         const className = classNames[classIndex] + '(여)';
         distributedStudents[className].push(student);
       });
-      delete distributedStudents['temp_female_transfer'];
 
-      // 남학생 전출예정
-      const maleTransfer = distributedStudents['temp_male_transfer'] || [];
       maleTransfer.forEach((student, i) => {
         const classIndex = i % settings.totalClasses;
         const className = classNames[classIndex] + '(남)';
         distributedStudents[className].push(student);
       });
+
+      delete distributedStudents['temp_female_transfer'];
       delete distributedStudents['temp_male_transfer'];
     }
 
