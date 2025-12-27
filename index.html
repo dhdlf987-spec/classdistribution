@@ -1,4 +1,4 @@
-function distributeStudents<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -346,7 +346,6 @@ function distributeStudents<!DOCTYPE html>
       <p style="color: #666; margin-top: 10px;">특수상황 학생 균등 배치 + 전학 예정 학생 자동 분산</p>
     </header>
 
-    <!-- 페이지 1: 설정 -->
     <div class="page active" id="page1">
       <div class="settings-page">
         <div class="settings-box">
@@ -357,29 +356,22 @@ function distributeStudents<!DOCTYPE html>
             <ul>
               <li><strong>동학년 대표 선생님</strong>이 각 반의 성적순 명렬표 PDF를 모두 받습니다</li>
               <li>1반부터 순서대로 PDF 파일을 업로드합니다</li>
-              <li><strong>기본 배치 원리:</strong> 1반 여학생 1등→가반, 2등→나반, 3등→다반... / 남학생 1등→라반, 2등→마반, 3등→바반...</li>
-              <li><strong>2반:</strong> 여학생 1등→나반, 남학생 1등→마반부터 시작 (균등 분산)</li>
               <li><strong>특수상황 학생</strong>(생활지도/특수/학습부진/다문화)을 자동으로 골고루 분산 배치합니다</li>
               <li><strong>전학 예정 학생</strong>은 마지막에 균등하게 배치합니다</li>
               <li>결과 확인 후 필요시 드래그로 조정하고 엑셀 다운로드합니다</li>
-              <li>💾 데이터는 이 컴퓨터 브라우저에 자동 저장됩니다 (새로고침해도 안전)</li>
+              <li>💾 데이터는 이 컴퓨터 브라우저에 자동 저장됩니다</li>
             </ul>
           </div>
 
           <div class="legend-box">
-            <h3>🎨 표시 기호 (중복 가능)</h3>
+            <h3>🎨 표시 기호</h3>
             <div class="legend-items">
               <span class="legend-item">⭐ 생활지도</span>
               <span class="legend-item"># 특수</span>
-              <span class="legend-item">❗ 학습부진/기초학력</span>
+              <span class="legend-item">❗ 학습부진</span>
               <span class="legend-item">@ 다문화</span>
               <span class="legend-item">🔄 전출예정</span>
-              <span class="legend-item" style="background: #FFE4E1;">여학생</span>
-              <span class="legend-item" style="background: #E0F2FF;">남학생</span>
             </div>
-            <p style="margin-top: 10px; font-size: 13px; color: #666;">
-              예: @❗김수지 (다문화 + 학습부진) / 🔄이민호 (전출예정)
-            </p>
           </div>
           
           <div class="form-group">
@@ -393,7 +385,7 @@ function distributeStudents<!DOCTYPE html>
           </div>
           
           <div class="form-group">
-            <label>현재 총 반 수 (업로드할 반 수)</label>
+            <label>현재 총 반 수</label>
             <select id="currentClasses">
               <option value="3">3개 반</option>
               <option value="4">4개 반</option>
@@ -407,7 +399,7 @@ function distributeStudents<!DOCTYPE html>
           </div>
 
           <div class="form-group">
-            <label>배정할 총 반 수 (내년도 반 수)</label>
+            <label>배정할 총 반 수</label>
             <select id="totalClasses">
               <option value="3">3개 반</option>
               <option value="4">4개 반</option>
@@ -427,7 +419,6 @@ function distributeStudents<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- 페이지 2: 업로드 -->
     <div class="page" id="page2">
       <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <h2 style="margin-bottom: 20px;">📤 명렬표 업로드</h2>
@@ -453,7 +444,6 @@ function distributeStudents<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- 페이지 3: 결과 -->
     <div class="page" id="page3">
       <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <h2 style="margin-bottom: 10px;">📊 반배치 결과</h2>
@@ -685,10 +675,8 @@ function distributeStudents<!DOCTYPE html>
           male: students.male.length
         };
 
-        // 모든 반이 업로드되었는지 확인
         const uploadedCount = Object.keys(uploadedClasses).length;
         if (uploadedCount === settings.currentClasses) {
-          // 최종 배치 실행
           finalizeDistribution();
         }
 
@@ -745,7 +733,6 @@ function distributeStudents<!DOCTYPE html>
           if (parts[i] === '여' && parts[i + 1]) {
             let name = parts[i + 1];
             
-            // 유효하지 않은 이름 필터링
             if (isValidName(name)) {
               let notes = [];
               
@@ -753,7 +740,6 @@ function distributeStudents<!DOCTYPE html>
                 if (parts[j] === '남' || parts[j] === '여') break;
                 if (parts[j] && !parts[j].match(/^\d+$/)) {
                   const note = parts[j].toLowerCase();
-                  // 유연한 키워드 매칭
                   if (note.includes('생활') || note.includes('지도')) {
                     notes.push('생활지도');
                   } else if (note.includes('특수') || note.includes('장애')) {
@@ -768,14 +754,12 @@ function distributeStudents<!DOCTYPE html>
                 }
               }
 
-              // 중복 제거
               notes = [...new Set(notes)];
               female.push({ name, notes, gender: '여' });
             }
           } else if (parts[i] === '남' && parts[i + 1]) {
             let name = parts[i + 1];
             
-            // 유효하지 않은 이름 필터링
             if (isValidName(name)) {
               let notes = [];
               
@@ -783,7 +767,6 @@ function distributeStudents<!DOCTYPE html>
                 if (parts[j] === '남' || parts[j] === '여') break;
                 if (parts[j] && !parts[j].match(/^\d+$/)) {
                   const note = parts[j].toLowerCase();
-                  // 유연한 키워드 매칭
                   if (note.includes('생활') || note.includes('지도')) {
                     notes.push('생활지도');
                   } else if (note.includes('특수') || note.includes('장애')) {
@@ -798,7 +781,6 @@ function distributeStudents<!DOCTYPE html>
                 }
               }
 
-              // 중복 제거
               notes = [...new Set(notes)];
               male.push({ name, notes, gender: '남' });
             }
@@ -809,39 +791,24 @@ function distributeStudents<!DOCTYPE html>
       return { female, male };
     }
 
-    // 유효한 이름인지 확인
     function isValidName(name) {
-      // 빈 문자열
       if (!name || name.trim() === '') return false;
-      
-      // 숫자만 있는 경우
       if (/^\d+$/.test(name)) return false;
-      
-      // '남', '여' 단독
       if (name === '남' || name === '여') return false;
-      
-      // '성별', '이름', '비고', '순서' 등 헤더로 보이는 단어
       const invalidWords = ['성별', '이름', '비고', '순서', '번호', '학생', '명단', '명렬표'];
       if (invalidWords.includes(name)) return false;
-      
-      // 1글자이고 숫자나 특수문자인 경우
       if (name.length === 1 && !/[가-힣a-zA-Z]/.test(name)) return false;
-      
-      // 한글, 영문이 하나도 없는 경우
       if (!/[가-힣a-zA-Z]/.test(name)) return false;
-      
       return true;
     }
 
     function getPrefixes(notes) {
       let prefixes = '';
-      
       if (notes.includes('생활지도')) prefixes += '⭐';
       if (notes.includes('특수')) prefixes += '#';
       if (notes.includes('학습부진')) prefixes += '❗';
       if (notes.includes('다문화')) prefixes += '@';
       if (notes.includes('전출예정')) prefixes += '🔄';
-      
       return prefixes;
     }
 
@@ -856,14 +823,11 @@ function distributeStudents<!DOCTYPE html>
 
     function distributeStudentsWithBalance(students, classNumber) {
       const totalClasses = settings.totalClasses;
-
-      // 1단계: 학생 분류 (특이사항별로 세분화)
       students.female.forEach(s => classifyAndAdd(s, classNumber, '여'));
       students.male.forEach(s => classifyAndAdd(s, classNumber, '남'));
     }
 
     function classifyAndAdd(student, classNumber, gender) {
-      // 임시 저장소에 추가
       const categories = ['생활지도', '특수', '학습부진', '다문화', '전출예정'];
       let added = false;
 
@@ -873,7 +837,7 @@ function distributeStudents<!DOCTYPE html>
           if (!distributedStudents[key]) distributedStudents[key] = [];
           distributedStudents[key].push({...student, originalClass: classNumber});
           added = true;
-          break; // 첫 번째 특이사항만 사용
+          break;
         }
       }
 
@@ -885,124 +849,236 @@ function distributeStudents<!DOCTYPE html>
     }
 
     function finalizeDistribution() {
-      // 모든 임시 데이터를 실제 반에 배치
-      const categories = ['normal', '생활지도', '특수', '학습부진', '다문화'];
+      // 1단계: 모든 임시 데이터를 하나의 배열로 모으기
+      const allFemaleStudents = [];
+      const allMaleStudents = [];
       
-      let femaleIndex = 0;
-      let maleIndex = 0;
-
-      // 1. 일반 + 특수상황 학생 배치
+      const categories = ['normal', '생활지도', '특수', '학습부진', '다문화', '전출예정'];
+      
       categories.forEach(cat => {
         const femaleKey = `temp_여_${cat}`;
         const maleKey = `temp_남_${cat}`;
         
         const femaleStudents = distributedStudents[femaleKey] || [];
         const maleStudents = distributedStudents[maleKey] || [];
-
-        femaleStudents.forEach(student => {
-          const classIdx = femaleIndex++ % settings.totalClasses;
-          const className = classNames[classIdx] + '(여)';
-          if (!distributedStudents[className]) distributedStudents[className] = [];
-          distributedStudents[className].push(student);
-        });
-
-        maleStudents.forEach(student => {
-          const classIdx = maleIndex++ % settings.totalClasses;
-          const className = classNames[classIdx] + '(남)';
-          if (!distributedStudents[className]) distributedStudents[className] = [];
-          distributedStudents[className].push(student);
-        });
-
+        
+        allFemaleStudents.push(...femaleStudents);
+        allMaleStudents.push(...maleStudents);
+        
         delete distributedStudents[femaleKey];
         delete distributedStudents[maleKey];
       });
-
-      // 2. 전출예정 학생 골고루 배치
-      const femaleTransfer = distributedStudents['temp_여_전출예정'] || [];
-      const maleTransfer = distributedStudents['temp_남_전출예정'] || [];
-
-      femaleTransfer.forEach((student, i) => {
-        const classIdx = i % settings.totalClasses;
+      
+      // 2단계: 균등 배치 (라운드 로빈)
+      allFemaleStudents.forEach((student, index) => {
+        const classIdx = index % settings.totalClasses;
         const className = classNames[classIdx] + '(여)';
         if (!distributedStudents[className]) distributedStudents[className] = [];
         distributedStudents[className].push(student);
       });
-
-      maleTransfer.forEach((student, i) => {
-        const classIdx = i % settings.totalClasses;
+      
+      allMaleStudents.forEach((student, index) => {
+        const classIdx = index % settings.totalClasses;
         const className = classNames[classIdx] + '(남)';
         if (!distributedStudents[className]) distributedStudents[className] = [];
         distributedStudents[className].push(student);
       });
-
-      delete distributedStudents['temp_여_전출예정'];
-      delete distributedStudents['temp_남_전출예정'];
-
-      // 3. 인원수 균등화
+      
+      // 3단계: 특수상황 학생 재분산
+      redistributeSpecialStudents();
+      
+      // 4단계: 인원수 정밀 균등화
       balanceClassCount();
-
-      // 4. 동명이인 처리
+      
+      // 5단계: 동명이인 처리
       handleDuplicateNames();
-
-      // 5. displayName 업데이트
+      
+      // 6단계: 표시 이름 업데이트
       updateDisplayNames();
+    }
+    
+    function redistributeSpecialStudents() {
+      const specialTypes = ['생활지도', '특수', '학습부진', '다문화'];
+      
+      specialTypes.forEach(type => {
+        ['여', '남'].forEach(gender => {
+          const genderKey = '(' + gender + ')';
+          
+          // 각 반의 해당 특수상황 학생 수 계산
+          const classCounts = [];
+          for (let i = 0; i < settings.totalClasses; i++) {
+            const className = classNames[i] + genderKey;
+            const students = distributedStudents[className] || [];
+            const count = students.filter(s => s.notes.includes(type)).length;
+            classCounts.push({ className, count, students });
+          }
+          
+          // 균등화 (100회로 증가)
+          for (let iter = 0; iter < 100; iter++) {
+            classCounts.forEach(c => {
+              c.students = distributedStudents[c.className] || [];
+              c.count = c.students.filter(s => s.notes.includes(type)).length;
+            });
+            
+            const sorted = [...classCounts].sort((a, b) => b.count - a.count);
+            const maxClass = sorted[0];
+            const minClass = sorted[sorted.length - 1];
+            
+            if (maxClass.count - minClass.count <= 1) break;
+            
+            const specialStudent = maxClass.students.find(s => 
+              s.notes.includes(type) && !isTransfer(s.notes)
+            );
+            
+            if (specialStudent) {
+              distributedStudents[maxClass.className] = maxClass.students.filter(
+                s => s.name !== specialStudent.name
+              );
+              distributedStudents[minClass.className].push(specialStudent);
+            } else {
+              break;
+            }
+          }
+        });
+      });
     }
 
     function balanceClassCount() {
-      // 전출예정 제외하고 인원 계산
       ['여', '남'].forEach(gender => {
         const genderKey = '(' + gender + ')';
-        const counts = [];
         
-        for (let i = 0; i < settings.totalClasses; i++) {
-          const className = classNames[i] + genderKey;
-          const students = distributedStudents[className] || [];
-          const nonTransfer = students.filter(s => !isTransfer(s.notes));
-          counts.push({ className, count: nonTransfer.length, total: students.length });
-        }
-
-        const totalNonTransfer = counts.reduce((sum, c) => sum + c.count, 0);
-        const target = Math.round(totalNonTransfer / settings.totalClasses);
-
-        // 균등화
-        for (let iter = 0; iter < 50; iter++) {
-          let moved = false;
-
-          // 많은 반에서 적은 반으로 이동
-          const sorted = counts.sort((a, b) => b.count - a.count);
+        // 최대 500회 반복으로 완벽하게 균등화
+        for (let iter = 0; iter < 500; iter++) {
+          const classes = [];
           
-          for (let i = 0; i < sorted.length; i++) {
-            if (sorted[i].count > target) {
-              for (let j = sorted.length - 1; j > i; j--) {
-                if (sorted[j].count < target) {
-                  // 이동
-                  const fromClass = sorted[i].className;
-                  const toClass = sorted[j].className;
-                  const students = distributedStudents[fromClass];
-                  const nonTransfer = students.filter(s => !isTransfer(s.notes) && !hasSpecialNote(s.notes));
-                  
-                  if (nonTransfer.length > 0) {
-                    const student = nonTransfer[0];
-                    distributedStudents[fromClass] = students.filter(s => s.name !== student.name);
-                    distributedStudents[toClass].push(student);
-                    sorted[i].count--;
-                    sorted[j].count++;
-                    moved = true;
-                    break;
-                  }
-                }
-              }
+          for (let i = 0; i < settings.totalClasses; i++) {
+            const className = classNames[i] + genderKey;
+            const students = distributedStudents[className] || [];
+            classes.push({
+              className,
+              students: [...students],
+              total: students.length
+            });
+          }
+
+          const totalStudents = classes.reduce((sum, c) => sum + c.total, 0);
+          const avgCount = totalStudents / settings.totalClasses;
+          const minTarget = Math.floor(avgCount);
+          const maxTarget = Math.ceil(avgCount);
+
+          // 최대/최소 반 찾기
+          const sorted = [...classes].sort((a, b) => b.total - a.total);
+          const maxClass = sorted[0];
+          const minClass = sorted[sorted.length - 1];
+          
+          const diff = maxClass.total - minClass.total;
+          
+          // 완벽하게 균등하면 종료
+          if (diff <= 1 && maxClass.total <= maxTarget && minClass.total >= minTarget) {
+            break;
+          }
+          
+          // 최대 반이 목표를 초과하지 않으면 종료
+          if (maxClass.total <= maxTarget) {
+            break;
+          }
+
+          // 학생 이동 (일반 > 특수 > 전출 순)
+          let movedStudent = null;
+          
+          // 우선순위 1: 일반 학생
+          const normalStudents = maxClass.students.filter(s => 
+            !hasSpecialNote(s.notes) && !isTransfer(s.notes)
+          );
+          if (normalStudents.length > 0) {
+            movedStudent = normalStudents[0];
+          }
+          
+          // 우선순위 2: 특수상황 학생
+          if (!movedStudent) {
+            const specialStudents = maxClass.students.filter(s => 
+              hasSpecialNote(s.notes) && !isTransfer(s.notes)
+            );
+            if (specialStudents.length > 0) {
+              movedStudent = specialStudents[0];
+            }
+          }
+          
+          // 우선순위 3: 전출예정 학생
+          if (!movedStudent) {
+            const transferStudents = maxClass.students.filter(s => isTransfer(s.notes));
+            if (transferStudents.length > 0) {
+              movedStudent = transferStudents[0];
             }
           }
 
-          if (!moved) break;
+          if (movedStudent) {
+            // 실제 이동
+            distributedStudents[maxClass.className] = distributedStudents[maxClass.className].filter(
+              s => s.name !== movedStudent.name
+            );
+            distributedStudents[minClass.className].push(movedStudent);
+          } else {
+            break;
+          }
         }
       });
     }
 
+    function countSpecialByClass(gender) {
+      const genderKey = '(' + gender + ')';
+      const counts = {};
+      
+      for (let i = 0; i < settings.totalClasses; i++) {
+        const className = classNames[i] + genderKey;
+        counts[className] = {
+          '생활지도': 0,
+          '특수': 0,
+          '학습부진': 0,
+          '다문화': 0
+        };
+        
+        const students = distributedStudents[className] || [];
+        students.forEach(s => {
+          if (s.notes.includes('생활지도')) counts[className]['생활지도']++;
+          if (s.notes.includes('특수')) counts[className]['특수']++;
+          if (s.notes.includes('학습부진')) counts[className]['학습부진']++;
+          if (s.notes.includes('다문화')) counts[className]['다문화']++;
+        });
+      }
+      
+      return counts;
+    }
+
+    function findBestSpecialToMove(specialStudents, fromClass, toClass, specialCounts) {
+      let bestStudent = null;
+      let bestScore = -Infinity;
+      
+      specialStudents.forEach(student => {
+        let score = 0;
+        
+        const types = ['생활지도', '특수', '학습부진', '다문화'].filter(t => 
+          student.notes.includes(t)
+        );
+        
+        types.forEach(type => {
+          const fromCount = specialCounts[fromClass][type];
+          const toCount = specialCounts[toClass][type];
+          const diff = fromCount - toCount;
+          score += diff;
+        });
+        
+        if (score > bestScore) {
+          bestScore = score;
+          bestStudent = student;
+        }
+      });
+      
+      return bestScore > 0 ? bestStudent : null;
+    }
+
     function handleDuplicateNames() {
-      // 동명이인 찾기
-      const nameMap = new Map(); // firstName -> [{student, className, classIdx}]
+      const nameMap = new Map();
 
       for (let i = 0; i < settings.totalClasses; i++) {
         ['(여)', '(남)'].forEach(gender => {
@@ -1027,10 +1103,8 @@ function distributeStudents<!DOCTYPE html>
         });
       }
 
-      // 동명이인 처리
       nameMap.forEach((group, firstName) => {
         if (group.length > 1) {
-          // 같은 반에 있으면 분산
           const byClass = {};
           group.forEach(item => {
             if (!byClass[item.classIdx]) byClass[item.classIdx] = [];
@@ -1039,12 +1113,10 @@ function distributeStudents<!DOCTYPE html>
 
           Object.values(byClass).forEach(sameClassGroup => {
             if (sameClassGroup.length > 1) {
-              // 두 번째부터 다른 반으로
               for (let i = 1; i < sameClassGroup.length; i++) {
                 const item = sameClassGroup[i];
                 const gender = item.className.includes('(여)') ? '(여)' : '(남)';
 
-                // 같은 이름이 없는 반 찾기
                 for (let j = 0; j < settings.totalClasses; j++) {
                   if (j === item.classIdx) continue;
 
@@ -1057,7 +1129,6 @@ function distributeStudents<!DOCTYPE html>
                   });
 
                   if (!hasSame) {
-                    // 이동
                     distributedStudents[item.className] = distributedStudents[item.className].filter(s => s.name !== item.student.name);
                     distributedStudents[targetClass].push(item.student);
                     break;
@@ -1067,7 +1138,6 @@ function distributeStudents<!DOCTYPE html>
             }
           });
 
-          // 원반 표시 추가 (한 번만)
           group.forEach(item => {
             item.student.showOriginalClass = true;
           });
@@ -1091,19 +1161,6 @@ function distributeStudents<!DOCTYPE html>
       }
     }
 
-    function addStudent(className, student, classNumber) {
-      const prefixes = getPrefixes(student.notes);
-      const studentData = {
-        name: student.name,
-        notes: student.notes,
-        displayName: prefixes + student.name,
-        gender: student.gender,
-        originalClass: classNumber
-      };
-      
-      distributedStudents[className].push(studentData);
-    }
-
     function renderResult() {
       const grid = document.getElementById('resultGrid');
       grid.innerHTML = '';
@@ -1122,16 +1179,13 @@ function distributeStudents<!DOCTYPE html>
       const maleStudents = distributedStudents[className + '(남)'] || [];
       const totalCount = femaleStudents.length + maleStudents.length;
 
-      // 특이사항 통계
       const stats = getClassStats(femaleStudents, maleStudents);
 
-      // 메인 헤더
       const mainHeader = document.createElement('div');
       mainHeader.className = 'class-main-header';
       mainHeader.textContent = `${className} (${totalCount}명)`;
       section.appendChild(mainHeader);
 
-      // 통계
       if (stats.length > 0) {
         const statsDiv = document.createElement('div');
         statsDiv.className = 'class-stats';
@@ -1139,7 +1193,6 @@ function distributeStudents<!DOCTYPE html>
         section.appendChild(statsDiv);
       }
 
-      // 남녀 컬럼
       const columns = document.createElement('div');
       columns.className = 'class-columns';
 
@@ -1205,21 +1258,16 @@ function distributeStudents<!DOCTYPE html>
         }
       };
 
-      // 정렬: 일반 학생 → 특수상황 학생 → 전출예정 학생
       const sortedStudents = [...students].sort((a, b) => {
         const aTransfer = isTransfer(a.notes);
         const bTransfer = isTransfer(b.notes);
         const aSpecial = hasSpecialNote(a.notes);
         const bSpecial = hasSpecialNote(b.notes);
         
-        // 전출예정은 맨 뒤
         if (aTransfer && !bTransfer) return 1;
         if (!aTransfer && bTransfer) return -1;
-        
-        // 특수상황은 중간
         if (aSpecial && !bSpecial && !aTransfer) return 1;
         if (!aSpecial && bSpecial && !bTransfer) return -1;
-        
         return 0;
       });
 
@@ -1269,7 +1317,6 @@ function distributeStudents<!DOCTYPE html>
           const femaleStudents = distributedStudents[className + '(여)'] || [];
           const maleStudents = distributedStudents[className + '(남)'] || [];
 
-          // 합치고 정렬 (남녀 통합 가나다순)
           const allStudents = [...femaleStudents, ...maleStudents];
           const sorted = sortForExcel(allStudents);
 
@@ -1282,28 +1329,28 @@ function distributeStudents<!DOCTYPE html>
             const noteText = s.notes && s.notes.length > 0 ? s.notes.join(', ') : '';
             
             sheetData.push([
-              nextGrade,           // 진급 학년
-              className,           // 진급 반
-              index + 1,          // 번호 (가나다순)
-              cleanName,          // 성명
-              s.gender,           // 성별
-              settings.grade,     // 현재 학년
-              s.originalClass,    // 현재 반
-              noteText            // 비고
+              nextGrade,
+              className,
+              index + 1,
+              cleanName,
+              s.gender,
+              settings.grade,
+              s.originalClass,
+              noteText
             ]);
           });
 
           const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
           
           worksheet['!cols'] = [
-            { wch: 10 },  // 진급학년
-            { wch: 10 },  // 진급반
-            { wch: 6 },   // 번호
-            { wch: 10 },  // 성명
-            { wch: 6 },   // 성별
-            { wch: 10 },  // 현재학년
-            { wch: 10 },  // 현재반
-            { wch: 30 }   // 비고
+            { wch: 10 },
+            { wch: 10 },
+            { wch: 6 },
+            { wch: 10 },
+            { wch: 6 },
+            { wch: 10 },
+            { wch: 10 },
+            { wch: 30 }
           ];
 
           XLSX.utils.book_append_sheet(workbook, worksheet, className);
@@ -1320,11 +1367,9 @@ function distributeStudents<!DOCTYPE html>
     }
 
     function sortForExcel(students) {
-      // 전출예정 분리
       const transferStudents = students.filter(s => isTransfer(s.notes));
       const normalStudents = students.filter(s => !isTransfer(s.notes));
 
-      // 가나다순 정렬 (남녀 구분 없이)
       normalStudents.sort((a, b) => {
         const nameA = a.name.replace(/^[⭐#❗@🔄]+/, '').replace(/\(\d+반\)/, '').trim();
         const nameB = b.name.replace(/^[⭐#❗@🔄]+/, '').replace(/\(\d+반\)/, '').trim();
